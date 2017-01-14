@@ -70,7 +70,7 @@ public class Robot extends IterativeRobot {
 
 	/**
 	 * Arrays that hold the angles and speed ratios necessary for the robot to
-	 * drive in snake mode.
+	 * drive in snake mode. Derived from calculations found in 1640's swerve papers.
 	 */
 	double[] a_i = { 0, 7.321, 15.945, 26.055, 37.626, 50.264, 63.182, 75.476, 86.497, 87.131, 79.046 };
 	double[] a_o = { 0, 6.261, 11.696, 16.5, 20.833, 24.823, 28.573, 32.172, 35.696, 39.218, 42.81 };
@@ -86,15 +86,16 @@ public class Robot extends IterativeRobot {
 	// AnalogGyro gyro;
 
 	/**
-	 * Encoder values for correctly oriented turning wheels.
+	 * Encoder values for correctly oriented turning wheels. Found by aligning the wheels lengthwise and recording the encoder values.
 	 */
 	int[] straights = { 461, 539, 525, 387 };
 
 	/**
-	 * Angles for zero point turning.
+	 * Angles in degrees for zero point turning. Found through trig math.
 	 */
 	double[] turnTargets = { 236.203, 123.797, 303.797, 56.203 };
-
+	
+	//Conversion from degrees to encoder ticks.
 	private final double conversion = 1023 / 270.;
 	boolean fieldCentric = false;
 
