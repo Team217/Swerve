@@ -1,6 +1,8 @@
+
 package org.usfirst.frc.team217.robot;
 
 import com.ni.vision.NIVision;
+//Needed for using the navx gyro. Code using the navx gyro will be preceded by the tag $NAVX for removal in case the user is not using the navx gyro.
 import com.kauailabs.navx.frc.*;
 import com.ni.vision.NIVision.Image;
 
@@ -101,7 +103,8 @@ public class Robot extends IterativeRobot {
 	 * for any initialization code.
 	 */
 	public void robotInit() {
-
+		
+		//$NAVX
 		ahrs = new AHRS(SPI.Port.kMXP);
 		ahrs.resetDisplacement();
 
@@ -112,6 +115,9 @@ public class Robot extends IterativeRobot {
 			turns[i].setProfile(1);
 
 			drives[i] = new Victor(i);
+			//Lower this value if the turning wheels consistently freak out.
+			//Raise this value if the wheels are not quite reaching their targets; i.e. wheels do not always
+			//line up correctly in crab mode.
 			turns[i].setP(3.25);
 		}
 
@@ -137,6 +143,7 @@ public class Robot extends IterativeRobot {
 	 * This method is called once upon the start of operator control.
 	 */
 	public void teleopInit() {
+		//Sets all wheel talons to position mode. Default mode is Voltage.
 		for (int i = 0; i < turns.length; i++)
 			turns[i].changeControlMode(TalonControlMode.Position);
 	}
@@ -145,6 +152,7 @@ public class Robot extends IterativeRobot {
 	 * This method is called periodically during operator control.
 	 */
 	public void teleopPeriodic() {
+		//$NAVX
 		double xAngle = ahrs.getAngle();
 		double xDisp = ahrs.getDisplacementX();
 		double yDisp = ahrs.getDisplacementY();
@@ -153,18 +161,18 @@ public class Robot extends IterativeRobot {
 			ahrs.reset();
 		if (driver.getRawButton(9))
 			ahrs.resetDisplacement();
-
+		//$NAVX
 		SmartDashboard.putNumber("Yaw", xAngle % 360);
 		SmartDashboard.putNumber("Roll", ahrs.getPitch());
 		SmartDashboard.putNumber("Pitch", ahrs.getRoll());
 		SmartDashboard.putNumber("Yaw Rate", ahrs.getRate());
 		// SmartDashboard.putNumber("Z Displacement", zDisp);
 		SmartDashboard.putBoolean("isCalibrating", ahrs.isCalibrating());
-
+		//$NAVX
 		NIVision.IMAQdxGrab(session, frame, 1);
 		CameraServer.getInstance().setImage(frame);
 
-		// Zero point turn. All wheels become tangent to th][\e center to create
+		// Zero point turn. All wheels become tangent to the center to create
 		// an
 		// ellipse.
 		if (driver.getRawButton(8)) {
