@@ -38,7 +38,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * @version 6/24/2016
  */
 public class Robot extends IterativeRobot {
-
+	//$NAVX
 	AHRS ahrs;
 
 	/**
@@ -178,8 +178,9 @@ public class Robot extends IterativeRobot {
 		// ellipse.
 		if (driver.getRawButton(8)) {
 			for (int i = 0; i < 4; i++) {
-				turns[i].set((__(turnTargets[i]) + straights[i]) % 1365);
+				turns[i].set((joystickMapping(turnTargets[i]) + straights[i]) % 1365);
 				double turnSpeed = -deadband(driver.getZ());
+				//TODO: reference joystickMapping
 				if (isReversed)
 					turnSpeed *= -1;
 				if (i == 2)
@@ -203,19 +204,22 @@ public class Robot extends IterativeRobot {
 					/*
 					 * Angle is converted so that the wheel is displaced in
 					 * relation to its straight value.
+					 * Fieldcentric mode - robot orientation is relative to starting position: Forward on the joystick always refers to north of original direction.
+					 * Does not work without a gyroscope on the robot.
 					 */
 					if (fieldCentric) {
-						turns[i].set((__((driver.getDirectionDegrees() - xAngle) % 360) + straights[i]) % (1365));
+						turns[i].set((joystickMapping((driver.getDirectionDegrees() - xAngle) % 360) + straights[i]) % (1365));
 						SmartDashboard.putNumber("Wheel Input", (driver.getDirectionDegrees() - xAngle) % 360);
 					} else {
-
-						turns[i].set((__(driver.getDirectionDegrees() % 360) + straights[i]) % (1365));
+						 //Joystick angle is converted to heading in encoder ticks, then is set relative to the straight values and is shifted to correct tick range.
+						turns[i].set((joystickMapping(driver.getDirectionDegrees() % 360) + straights[i]) % (1365));
 						SmartDashboard.putNumber("Wheel Input", driver.getDirectionDegrees() % 360);
 					}
 				}
 			}
 
 			double driveSpeed = -deadband(driver.getMagnitude());
+			//TODO: reference joystickMapping
 			if (isReversed)
 				driveSpeed *= -1;
 			for (int i = 0; i < 4; i++) {
@@ -244,20 +248,20 @@ public class Robot extends IterativeRobot {
 			double speed_i = speed_o * ratios[input];
 
 			if (deadband(driver.getZ()) < 0) {
-				turns[0].set((__(a_o[input]) + straights[0]) % 1365);
-				turns[1].set((__(360 - a_o[input]) + straights[1]) % 1365);
-				turns[2].set((__(a_i[input]) + straights[2]) % 1365);
-				turns[3].set((__(360 - a_i[input]) + straights[3]) % 1365);
+				turns[0].set((joystickMapping(a_o[input]) + straights[0]) % 1365);
+				turns[1].set((joystickMapping(360 - a_o[input]) + straights[1]) % 1365);
+				turns[2].set((joystickMapping(a_i[input]) + straights[2]) % 1365);
+				turns[3].set((joystickMapping(360 - a_i[input]) + straights[3]) % 1365);
 
 				drives[0].set(-speed_o);
 				drives[1].set(-speed_o);
 				drives[2].set(speed_i);
 				drives[3].set(-speed_i);
 			} else if (deadband(driver.getZ()) > 0) {
-				turns[0].set((__(-1 * a_i[input]) + straights[0]) % 1365);
-				turns[1].set((__(360 - -1 * a_i[input]) + straights[1]) % 1365);
-				turns[2].set((__(-1 * a_o[input]) + straights[2]) % 1365);
-				turns[3].set((__(360 - -1 * a_o[input]) + straights[3]) % 1365);
+				turns[0].set((joystickMapping(-1 * a_i[input]) + straights[0]) % 1365);
+				turns[1].set((joystickMapping(360 - -1 * a_i[input]) + straights[1]) % 1365);
+				turns[2].set((joystickMapping(-1 * a_o[input]) + straights[2]) % 1365);
+				turns[3].set((joystickMapping(360 - -1 * a_o[input]) + straights[3]) % 1365);
 
 				drives[0].set(-speed_i);
 				drives[1].set(-speed_i);
@@ -272,19 +276,6 @@ public class Robot extends IterativeRobot {
 		}
 		Timer.delay(0.005); // wait for a motor update time
 
-	}
-
-	/**
-	 * converts between encoder ticks and degrees for easier calculation.
-	 * Encoder values range from 0-1023 whereas it is more intuitive to operate
-	 * on a 360 degree circle.
-	 * 
-	 * @param tick
-	 *            encoder position to be converted
-	 * @return degree value of turn motor
-	 */
-	public double ticksToDegrees(double tick) {
-		return tick / conversion;
 	}
 
 	/**
@@ -327,8 +318,8 @@ public class Robot extends IterativeRobot {
 	 *            position.
 	 * @return encoder value that the turn motor will be set to.
 	 */
-	public double __(double input) {
-		// Joystick is formatted for intuitive calculations
+	public double joystickMapping(double input) {
+		// Joystick is formatted for intuitive calculations. Range is set from (-180 --> 180) to (0 --> 360)
 		joyStickAngle = input;
 		if (joyStickAngle < 0)
 			joyStickAngle += 360;
@@ -342,8 +333,10 @@ public class Robot extends IterativeRobot {
 		} else {
 			isReversed = false;
 		}
+		//Ensures that joystick is mapped 0 --> to 360
 		if (joyStickAngle > 360)
 			joyStickAngle -= 360;
+
 		double turnPos = degreesToTicks(joyStickAngle);
 
 		return turnPos;
